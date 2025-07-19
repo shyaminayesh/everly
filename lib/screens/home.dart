@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import '../models/wedding_event.dart';
 import '../models/vendor.dart';
 import '../models/guest.dart';
@@ -31,21 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String _currency = '\$';
 
-  String _formatCurrency(double amount, {bool showDecimals = true}) {
-    final formatter = NumberFormat.currency(
-      symbol: _currency,
-      decimalDigits: showDecimals ? 2 : 0,
-    );
-    return formatter.format(amount);
-  }
-
   String _formatCompactCurrency(double amount) {
-    if (amount >= 1000000) {
-      return '$_currency${(amount / 1000000).toStringAsFixed(1)}M';
-    } else if (amount >= 1000) {
-      return '$_currency${(amount / 1000).toStringAsFixed(1)}K';
-    } else {
-      return _formatCurrency(amount, showDecimals: false);
+    try {
+      if (amount.isNaN || amount.isInfinite) {
+        return '$_currency 0';
+      }
+      if (amount >= 10000) {
+        return '$_currency${(amount / 1000).toStringAsFixed(0)}K';
+      } else if (amount >= 1000) {
+        return '$_currency${(amount / 1000).toStringAsFixed(1)}K';
+      } else {
+        return '$_currency${amount.toStringAsFixed(0)}';
+      }
+    } catch (e) {
+      return '$_currency 0';
     }
   }
 
@@ -69,13 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
       List<Vendor> vendors = [];
       List<Guest> guests = [];
       List<Budget> budgets = [];
-      
+
       if (event != null) {
         vendors = await _databaseHelper.getVendorsByWeddingEvent(event.id!);
         guests = await _databaseHelper.getGuestsByWeddingEvent(event.id!);
         budgets = await _databaseHelper.getBudgetsByWeddingEvent(event.id!);
       }
-      
+
       setState(() {
         _weddingEvent = event;
         _vendors = vendors;
@@ -108,10 +106,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _filteredGuests = List.from(_guests);
         break;
       case "Bride's Side":
-        _filteredGuests = _guests.where((guest) => guest.side == "Bride's Side").toList();
+        _filteredGuests = _guests
+            .where((guest) => guest.side == "Bride's Side")
+            .toList();
         break;
       case "Groom's Side":
-        _filteredGuests = _guests.where((guest) => guest.side == "Groom's Side").toList();
+        _filteredGuests = _guests
+            .where((guest) => guest.side == "Groom's Side")
+            .toList();
         break;
       default:
         _filteredGuests = List.from(_guests);
@@ -136,30 +138,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: const Text(
             'Delete Wedding Event',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Are you sure you want to delete "${_weddingEvent?.coupleNames}"? This action cannot be undone.',
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: const TextStyle(color: Colors.white70),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text(
                 'Delete',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -178,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _deleteWeddingEvent() async {
     try {
       await _databaseHelper.deleteWeddingEvent();
-      
+
       setState(() {
         _weddingEvent = null;
       });
@@ -219,30 +211,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: const Text(
             'Delete Vendor',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Are you sure you want to delete "${vendor.name}"? This action cannot be undone.',
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: const TextStyle(color: Colors.white70),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text(
                 'Delete',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -261,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _deleteVendor(Vendor vendor) async {
     try {
       await _databaseHelper.deleteVendor(vendor.id!);
-      
+
       setState(() {
         _vendors.removeWhere((v) => v.id == vendor.id);
       });
@@ -298,11 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 80,
-              color: Colors.grey.withOpacity(0.5),
-            ),
+            Icon(icon, size: 80, color: Colors.grey.withOpacity(0.5)),
             const SizedBox(height: 24),
             Text(
               message,
@@ -322,17 +300,17 @@ class _HomeScreenState extends State<HomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
               ),
               child: const Text(
                 'Go to Home',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -382,11 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.people,
-              size: 80,
-              color: Colors.white54,
-            ),
+            Icon(Icons.people, size: 80, color: Colors.white54),
             SizedBox(height: 24),
             Text(
               'Add guests using the + button\nto keep track of them',
@@ -412,10 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               'Showing ${_filteredGuests.length} of ${_guests.length} guests',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ),
@@ -425,10 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? Center(
                   child: Text(
                     'No guests found for $_guestFilter',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
                     textAlign: TextAlign.center,
                   ),
                 )
@@ -437,153 +405,171 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: _filteredGuests.length,
                   itemBuilder: (context, index) {
                     final guest = _filteredGuests[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          color: const Color(0xFF1E293B),
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: _getRSVPStatusColor(guest.rsvpStatus).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              guest.rsvpStatus,
-                              style: TextStyle(
-                                color: _getRSVPStatusColor(guest.rsvpStatus),
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: _getSideColor(guest.side).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              guest.side,
-                              style: TextStyle(
-                                color: _getSideColor(guest.side),
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        guest.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.phone,
-                            color: Colors.white70,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              guest.phone,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (guest.dietaryRestrictions.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      color: const Color(0xFF1E293B),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
                           children: [
-                            const Icon(
-                              Icons.restaurant,
-                              color: Colors.white70,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
                             Expanded(
-                              child: Text(
-                                guest.dietaryRestrictions,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getRSVPStatusColor(
+                                            guest.rsvpStatus,
+                                          ).withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          guest.rsvpStatus,
+                                          style: TextStyle(
+                                            color: _getRSVPStatusColor(
+                                              guest.rsvpStatus,
+                                            ),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getSideColor(
+                                            guest.side,
+                                          ).withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          guest.side,
+                                          style: TextStyle(
+                                            color: _getSideColor(guest.side),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    guest.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.phone,
+                                        color: Colors.white70,
+                                        size: 12,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          guest.phone,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (guest.dietaryRestrictions.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.restaurant,
+                                          color: Colors.white70,
+                                          size: 12,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            guest.dietaryRestrictions,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 11,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
                               ),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    await Navigator.of(context).pushNamed(
+                                      '/edit-guest',
+                                      arguments: guest,
+                                    );
+                                    // Reload guests after returning from edit guest screen
+                                    _loadWeddingEvent();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    child: const Icon(
+                                      Icons.edit,
+                                      color: Colors.white70,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                GestureDetector(
+                                  onTap: () =>
+                                      _showDeleteGuestConfirmation(guest),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    child: const Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        await Navigator.of(context).pushNamed(
-                          '/edit-guest',
-                          arguments: guest,
-                        );
-                        // Reload guests after returning from edit guest screen
-                        _loadWeddingEvent();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        child: const Icon(
-                          Icons.edit,
-                          color: Colors.white70,
-                          size: 14,
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: () => _showDeleteGuestConfirmation(guest),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        child: const Icon(
-                          Icons.delete,
-                          color: Colors.redAccent,
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
                     );
                   },
                 ),
@@ -595,7 +581,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRSVPChart() {
     final stats = _calculateRSVPStats();
     final total = stats.values.reduce((a, b) => a + b);
-    
+
     if (total == 0) return const SizedBox.shrink();
 
     return Container(
@@ -623,10 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const Text(
                       'Total',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
@@ -637,11 +620,23 @@ class _HomeScreenState extends State<HomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLegendItem('Attending', stats['Attending'] ?? 0, Colors.greenAccent),
+              _buildLegendItem(
+                'Attending',
+                stats['Attending'] ?? 0,
+                Colors.greenAccent,
+              ),
               const SizedBox(height: 8),
-              _buildLegendItem('Pending', stats['Pending'] ?? 0, Colors.orangeAccent),
+              _buildLegendItem(
+                'Pending',
+                stats['Pending'] ?? 0,
+                Colors.orangeAccent,
+              ),
               const SizedBox(height: 8),
-              _buildLegendItem('Not Attending', stats['Not Attending'] ?? 0, Colors.redAccent),
+              _buildLegendItem(
+                'Not Attending',
+                stats['Not Attending'] ?? 0,
+                Colors.redAccent,
+              ),
             ],
           ),
         ],
@@ -655,18 +650,12 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
           '$label: $count',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 14),
         ),
       ],
     );
@@ -709,177 +698,7 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: _budgets.length,
             itemBuilder: (context, index) {
               final budget = _budgets[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                color: const Color(0xFF1E293B),
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header with category and actions
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  budget.category,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  budget.description,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  await Navigator.of(context).pushNamed(
-                                    '/edit-budget',
-                                    arguments: budget,
-                                  );
-                                  _loadWeddingEvent();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  child: const Icon(
-                                    Icons.edit,
-                                    color: Colors.white70,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: () => _showDeleteBudgetConfirmation(budget),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.redAccent,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Budget amounts
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Allocated',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                Text(
-                                  _formatCurrency(budget.allocatedAmount),
-                                  style: const TextStyle(
-                                    color: Colors.blueAccent,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Spent',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                Text(
-                                  _formatCurrency(budget.spentAmount),
-                                  style: TextStyle(
-                                    color: budget.isOverBudget ? Colors.redAccent : Colors.orangeAccent,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Remaining',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                Text(
-                                  _formatCurrency(budget.remainingAmount),
-                                  style: TextStyle(
-                                    color: budget.remainingAmount >= 0 ? Colors.greenAccent : Colors.redAccent,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Progress bar
-                      LinearProgressIndicator(
-                        value: budget.progressPercentage / 100,
-                        backgroundColor: Colors.white.withOpacity(0.1),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          budget.isOverBudget ? Colors.redAccent : Colors.greenAccent,
-                        ),
-                        minHeight: 6,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${budget.progressPercentage.toStringAsFixed(1)}% used',
-                        style: TextStyle(
-                          color: budget.isOverBudget ? Colors.redAccent : Colors.white70,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              return _buildBudgetCard(budget);
             },
           ),
         ),
@@ -935,7 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildBudgetLegendItem('Allocated', totalAllocated, Colors.blueAccent),
               const SizedBox(height: 8),
-              _buildBudgetLegendItem('Spent', totalSpent, totalSpent > totalAllocated ? Colors.redAccent : Colors.orangeAccent),
+              _buildBudgetLegendItem('Spent', totalSpent, Colors.orangeAccent),
               const SizedBox(height: 8),
               _buildBudgetLegendItem('Remaining', remaining, remaining >= 0 ? Colors.greenAccent : Colors.redAccent),
             ],
@@ -951,20 +770,183 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            '$label: ${_formatCompactCurrency(amount)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
+        Text(
+          '$label: ${_formatCompactCurrency(amount)}',
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBudgetCard(Budget budget) {
+    final progressPercent = budget.allocatedAmount > 0 
+        ? (budget.spentAmount / budget.allocatedAmount * 100).clamp(0, 100) 
+        : 0.0;
+    final remaining = budget.allocatedAmount - budget.spentAmount;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: const Color(0xFF1E293B),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with category and actions
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        budget.category,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (budget.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          budget.description,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () async {
+                        await Navigator.of(context).pushNamed(
+                          '/edit-budget',
+                          arguments: budget,
+                        );
+                        _loadWeddingEvent();
+                      },
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => _showDeleteBudgetConfirmation(budget),
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.redAccent,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 16),
+            // Budget amounts
+            Row(
+              children: [
+                Expanded(
+                  child: _buildBudgetAmount(
+                    'Allocated',
+                    budget.allocatedAmount,
+                    Colors.blueAccent,
+                  ),
+                ),
+                Expanded(
+                  child: _buildBudgetAmount(
+                    'Spent',
+                    budget.spentAmount,
+                    budget.spentAmount > budget.allocatedAmount 
+                        ? Colors.redAccent 
+                        : Colors.orangeAccent,
+                  ),
+                ),
+                Expanded(
+                  child: _buildBudgetAmount(
+                    'Remaining',
+                    remaining,
+                    remaining >= 0 ? Colors.greenAccent : Colors.redAccent,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Progress bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Progress',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${progressPercent.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        color: progressPercent > 100 ? Colors.redAccent : Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: (progressPercent / 100).clamp(0.0, 1.0),
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progressPercent > 100 ? Colors.redAccent : Colors.greenAccent,
+                  ),
+                  minHeight: 8,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBudgetAmount(String label, double amount, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _formatCompactCurrency(amount),
+          style: TextStyle(
+            color: color,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
@@ -982,30 +964,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: const Text(
             'Delete Budget Entry',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Are you sure you want to delete "${budget.category}"? This action cannot be undone.',
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: const TextStyle(color: Colors.white70),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text(
                 'Delete',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -1024,7 +996,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _deleteBudget(Budget budget) async {
     try {
       await _databaseHelper.deleteBudget(budget.id!);
-      
+
       setState(() {
         _budgets.removeWhere((b) => b.id == budget.id);
       });
@@ -1060,11 +1032,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'Not Attending': 0,
       'Pending': 0,
     };
-    
+
     for (final guest in _filteredGuests) {
       stats[guest.rsvpStatus] = (stats[guest.rsvpStatus] ?? 0) + 1;
     }
-    
+
     return stats;
   }
 
@@ -1102,30 +1074,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: const Text(
             'Delete Guest',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Are you sure you want to delete "${guest.name}"? This action cannot be undone.',
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: const TextStyle(color: Colors.white70),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text(
                 'Delete',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -1144,7 +1106,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _deleteGuest(Guest guest) async {
     try {
       await _databaseHelper.deleteGuest(guest.id!);
-      
+
       setState(() {
         _guests.removeWhere((g) => g.id == guest.id);
         _applyGuestFilter();
@@ -1181,11 +1143,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.business,
-              size: 80,
-              color: Colors.white54,
-            ),
+            Icon(Icons.business, size: 80, color: Colors.white54),
             SizedBox(height: 24),
             Text(
               'Add vendors using the + button\nto manage your wedding vendors',
@@ -1208,9 +1166,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final vendor = _vendors[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           color: const Color(0xFF1E293B),
           elevation: 2,
           child: Padding(
@@ -1225,7 +1181,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.deepPurple.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
@@ -1304,10 +1263,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        await Navigator.of(context).pushNamed(
-                          '/edit-vendor',
-                          arguments: vendor,
-                        );
+                        await Navigator.of(
+                          context,
+                        ).pushNamed('/edit-vendor', arguments: vendor);
                         // Reload vendors after returning from edit vendor screen
                         _loadWeddingEvent();
                       },
@@ -1344,227 +1302,237 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHomeContent() {
     return _isLoading
-        ? const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          )
+        ? const Center(child: CircularProgressIndicator(color: Colors.white))
         : _weddingEvent == null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Start Planning Your Wedding',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 40),
-                    Material(
-                      borderRadius: BorderRadius.circular(15),
-                      elevation: 8,
-                      shadowColor: Colors.deepPurple.withOpacity(0.5),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(15),
-                        onTap: () {
-                          Navigator.of(context).pushNamed('/create-event');
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 25,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: const Text(
-                            'Create Event',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Start Planning Your Wedding',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              )
-            : Column(
-                children: [
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: () {
-                      final daysUntilWedding = _weddingEvent!.weddingDate.difference(DateTime.now()).inDays;
-                      
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                const SizedBox(height: 40),
+                Material(
+                  borderRadius: BorderRadius.circular(15),
+                  elevation: 8,
+                  shadowColor: Colors.deepPurple.withValues(alpha: 0.5),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(15),
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/create-event');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Text(
+                        'Create Event',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: Colors.black,
                         ),
-                        elevation: 8,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Main card content
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(15),
-                                  topRight: Radius.circular(15),
-                                ),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    const Color(0xFF4C1D95), // Dark purple
-                                    const Color(0xFF6D28D9), // Medium purple
-                                  ],
-                                ),
-                              ),
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _weddingEvent!.coupleNames,
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.calendar_today,
-                                        color: Colors.white70,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${_weddingEvent!.weddingDate.day}/${_weddingEvent!.weddingDate.month}/${_weddingEvent!.weddingDate.year}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: Text(
-                                      daysUntilWedding > 0
-                                          ? '$daysUntilWedding days to go!'
-                                          : daysUntilWedding == 0
-                                              ? 'Today is the day! 🎉'
-                                              : 'Wedding was ${-daysUntilWedding} days ago',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: daysUntilWedding >= 0 ? Colors.greenAccent : Colors.white70,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Card footer with buttons
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2D1B69), // Dark purple footer
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(15),
-                                  bottomRight: Radius.circular(15),
-                                ),
-                                border: Border(
-                                  top: BorderSide(
-                                    color: Colors.white.withOpacity(0.1),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pushNamed(
-                                        '/create-event',
-                                        arguments: _weddingEvent,
-                                      );
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                    tooltip: 'Edit Wedding',
-                                    padding: const EdgeInsets.all(8),
-                                  ),
-                                  IconButton(
-                                    onPressed: () => _showDeleteConfirmation(),
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.redAccent,
-                                      size: 18,
-                                    ),
-                                    tooltip: 'Delete Wedding',
-                                    padding: const EdgeInsets.all(8),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }(),
-                  ),
-                  const SizedBox(height: 24),
-                  // Overview Charts Section
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        children: [
-                          // Guest Overview Card
-                          if (_guests.isNotEmpty) _buildHomeGuestOverview(),
-                          const SizedBox(height: 16),
-                          // Budget Overview Card
-                          if (_budgets.isNotEmpty) _buildHomeBudgetOverview(),
-                          const SizedBox(height: 24),
-                        ],
                       ),
                     ),
                   ),
-                ],
-              );
+                ),
+              ],
+            ),
+          )
+        : Column(
+            children: [
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: () {
+                  final daysUntilWedding = _weddingEvent!.weddingDate
+                      .difference(DateTime.now())
+                      .inDays;
+
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 8,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Main card content
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15),
+                            ),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF4C1D95), // Dark purple
+                                Color(0xFF6D28D9), // Medium purple
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _weddingEvent!.coupleNames,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.white70,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${_weddingEvent!.weddingDate.day}/${_weddingEvent!.weddingDate.month}/${_weddingEvent!.weddingDate.year}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  daysUntilWedding > 0
+                                      ? '$daysUntilWedding days to go!'
+                                      : daysUntilWedding == 0
+                                      ? 'Today is the day! 🎉'
+                                      : 'Wedding was ${-daysUntilWedding} days ago',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: daysUntilWedding >= 0
+                                        ? Colors.greenAccent
+                                        : Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Card footer with buttons
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF2D1B69,
+                            ), // Dark purple footer
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(15),
+                              bottomRight: Radius.circular(15),
+                            ),
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.white.withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                    '/create-event',
+                                    arguments: _weddingEvent,
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                tooltip: 'Edit Wedding',
+                                padding: const EdgeInsets.all(8),
+                              ),
+                              IconButton(
+                                onPressed: () => _showDeleteConfirmation(),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                  size: 18,
+                                ),
+                                tooltip: 'Delete Wedding',
+                                padding: const EdgeInsets.all(8),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }(),
+              ),
+              const SizedBox(height: 24),
+              // Overview Charts Section
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      // Guest Overview Card
+                      if (_guests.isNotEmpty) _buildHomeGuestOverview(),
+                      const SizedBox(height: 16),
+                      // Budget Overview Card
+                      if (_budgets.isNotEmpty) _buildHomeBudgetOverview(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
   }
 
   Widget _buildHomeGuestOverview() {
     final stats = _calculateRSVPStats();
     final total = stats.values.reduce((a, b) => a + b);
-    
+
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       color: const Color(0xFF1E293B),
       elevation: 4,
       child: Padding(
@@ -1574,11 +1542,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.people,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                const Icon(Icons.people, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'Guest Overview',
@@ -1645,11 +1609,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Column(
                       children: [
-                        _buildCompactLegendItem('Attending', stats['Attending'] ?? 0, Colors.greenAccent),
+                        _buildCompactLegendItem(
+                          'Attending',
+                          stats['Attending'] ?? 0,
+                          Colors.greenAccent,
+                        ),
                         const SizedBox(height: 6),
-                        _buildCompactLegendItem('Pending', stats['Pending'] ?? 0, Colors.orangeAccent),
+                        _buildCompactLegendItem(
+                          'Pending',
+                          stats['Pending'] ?? 0,
+                          Colors.orangeAccent,
+                        ),
                         const SizedBox(height: 6),
-                        _buildCompactLegendItem('Not Attending', stats['Not Attending'] ?? 0, Colors.redAccent),
+                        _buildCompactLegendItem(
+                          'Not Attending',
+                          stats['Not Attending'] ?? 0,
+                          Colors.redAccent,
+                        ),
                       ],
                     ),
                   ),
@@ -1659,10 +1635,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Center(
                 child: Text(
                   'No guests added yet',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ),
           ],
@@ -1672,118 +1645,135 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeBudgetOverview() {
-    final totalAllocated = _budgets.fold<double>(0, (sum, budget) => sum + budget.allocatedAmount);
-    final totalSpent = _budgets.fold<double>(0, (sum, budget) => sum + budget.spentAmount);
-    final remaining = totalAllocated - totalSpent;
-    
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      color: const Color(0xFF1E293B),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.attach_money,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Budget Overview',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _currentIndex = 1; // Switch to Budget tab
-                    });
-                  },
-                  child: const Text(
-                    'View All',
+    try {
+      final totalAllocated = _budgets.fold<double>(
+        0,
+        (sum, budget) => sum + budget.allocatedAmount,
+      );
+      final totalSpent = _budgets.fold<double>(
+        0,
+        (sum, budget) => sum + budget.spentAmount,
+      );
+      final remaining = totalAllocated - totalSpent;
+
+      return Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        color: const Color(0xFF1E293B),
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.attach_money, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Budget Overview',
                     style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 14,
+                      color: Colors.white,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (totalAllocated > 0)
-              Row(
-                children: [
-                  // Compact circular chart
-                  SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: CustomPaint(
-                      painter: BudgetChartPainter(totalSpent, totalAllocated),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _formatCompactCurrency(totalAllocated),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Budget',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _currentIndex = 1; // Switch to Budget tab
+                      });
+                    },
+                    child: const Text(
+                      'View All',
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 24),
-                  // Compact legend
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildCompactBudgetLegendItem('Allocated', totalAllocated, Colors.blueAccent),
-                        const SizedBox(height: 6),
-                        _buildCompactBudgetLegendItem('Spent', totalSpent, totalSpent > totalAllocated ? Colors.redAccent : Colors.orangeAccent),
-                        const SizedBox(height: 6),
-                        _buildCompactBudgetLegendItem('Remaining', remaining, remaining >= 0 ? Colors.greenAccent : Colors.redAccent),
-                      ],
-                    ),
-                  ),
                 ],
-              )
-            else
-              const Center(
-                child: Text(
-                  'No budget entries added yet',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+              ),
+              const SizedBox(height: 16),
+              if (totalAllocated > 0)
+                Row(
+                  children: [
+                    // Compact circular chart
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CustomPaint(
+                        painter: BudgetChartPainter(totalSpent, totalAllocated),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _formatCompactCurrency(totalAllocated),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text(
+                                'Budget',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Compact legend
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildCompactBudgetLegendItem(
+                            'Allocated',
+                            totalAllocated,
+                            Colors.blueAccent,
+                          ),
+                          const SizedBox(height: 6),
+                          _buildCompactBudgetLegendItem(
+                            'Spent',
+                            totalSpent,
+                            totalSpent > totalAllocated
+                                ? Colors.redAccent
+                                : Colors.orangeAccent,
+                          ),
+                          const SizedBox(height: 6),
+                          _buildCompactBudgetLegendItem(
+                            'Remaining',
+                            remaining,
+                            remaining >= 0
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              else
+                const Center(
+                  child: Text(
+                    'No budget entries added yet',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildCompactLegendItem(String label, int count, Color color) {
@@ -1792,48 +1782,43 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             '$label: $count',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCompactBudgetLegendItem(String label, double amount, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+  Widget _buildCompactBudgetLegendItem(
+    String label,
+    double amount,
+    Color color,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            '$label: ${_formatCompactCurrency(amount)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '$label: ${_formatCompactCurrency(amount)}',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+              overflow: TextOverflow.ellipsis,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1916,15 +1901,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(
                     Icons.people,
-                    color: _guestFilter == 'All' ? Colors.deepPurple : Colors.white70,
+                    color: _guestFilter == 'All'
+                        ? Colors.deepPurple
+                        : Colors.white70,
                     size: 18,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'All Guests',
                     style: TextStyle(
-                      color: _guestFilter == 'All' ? Colors.deepPurple : Colors.white,
-                      fontWeight: _guestFilter == 'All' ? FontWeight.bold : FontWeight.normal,
+                      color: _guestFilter == 'All'
+                          ? Colors.deepPurple
+                          : Colors.white,
+                      fontWeight: _guestFilter == 'All'
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   if (_guestFilter == 'All') ...[
@@ -1940,15 +1931,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(
                     Icons.favorite,
-                    color: _guestFilter == "Bride's Side" ? Colors.pinkAccent : Colors.white70,
+                    color: _guestFilter == "Bride's Side"
+                        ? Colors.pinkAccent
+                        : Colors.white70,
                     size: 18,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Bride's Side",
                     style: TextStyle(
-                      color: _guestFilter == "Bride's Side" ? Colors.pinkAccent : Colors.white,
-                      fontWeight: _guestFilter == "Bride's Side" ? FontWeight.bold : FontWeight.normal,
+                      color: _guestFilter == "Bride's Side"
+                          ? Colors.pinkAccent
+                          : Colors.white,
+                      fontWeight: _guestFilter == "Bride's Side"
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   if (_guestFilter == "Bride's Side") ...[
@@ -1964,15 +1961,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(
                     Icons.face,
-                    color: _guestFilter == "Groom's Side" ? Colors.blueAccent : Colors.white70,
+                    color: _guestFilter == "Groom's Side"
+                        ? Colors.blueAccent
+                        : Colors.white70,
                     size: 18,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Groom's Side",
                     style: TextStyle(
-                      color: _guestFilter == "Groom's Side" ? Colors.blueAccent : Colors.white,
-                      fontWeight: _guestFilter == "Groom's Side" ? FontWeight.bold : FontWeight.normal,
+                      color: _guestFilter == "Groom's Side"
+                          ? Colors.blueAccent
+                          : Colors.white,
+                      fontWeight: _guestFilter == "Groom's Side"
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   if (_guestFilter == "Groom's Side") ...[
@@ -2006,12 +2009,12 @@ class _HomeScreenState extends State<HomeScreen> {
               _loadWeddingEvent();
             }
           },
-          icon: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 24,
-          ),
-          tooltip: _currentIndex == 3 ? 'Add Vendor' : _currentIndex == 0 ? 'Add Guest' : 'Add Budget',
+          icon: const Icon(Icons.add, color: Colors.white, size: 24),
+          tooltip: _currentIndex == 3
+              ? 'Add Vendor'
+              : _currentIndex == 0
+              ? 'Add Guest'
+              : 'Add Budget',
         ),
       );
     }
@@ -2056,7 +2059,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: const Color(0xFF1E293B),
         elevation: 4,
-        shadowColor: Colors.deepPurple.withOpacity(0.3),
+        shadowColor: Colors.deepPurple.withValues(alpha: 0.3),
         centerTitle: false,
         automaticallyImplyLeading: false,
         actions: _buildAppBarActions(),
@@ -2088,7 +2091,8 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 8,
         onTap: (index) {
           // Prevent navigation to Guest List (0), Budget (1), and Vendors (3) if no wedding event
-          if ((index == 0 || index == 1 || index == 3) && _weddingEvent == null) {
+          if ((index == 0 || index == 1 || index == 3) &&
+              _weddingEvent == null) {
             Fluttertoast.showToast(
               msg: "Create a wedding event first to access this feature",
               toastLength: Toast.LENGTH_SHORT,
@@ -2100,7 +2104,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             return;
           }
-          
+
           setState(() {
             _currentIndex = index;
           });
@@ -2109,8 +2113,8 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.people,
-              color: _weddingEvent == null 
-                  ? Colors.grey.withOpacity(0.5) 
+              color: _weddingEvent == null
+                  ? Colors.grey.withOpacity(0.5)
                   : null,
             ),
             label: 'Guest List',
@@ -2118,27 +2122,24 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.attach_money,
-              color: _weddingEvent == null 
-                  ? Colors.grey.withOpacity(0.5) 
+              color: _weddingEvent == null
+                  ? Colors.grey.withOpacity(0.5)
                   : null,
-            ), 
+            ),
             label: 'Budget',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.business,
-              color: _weddingEvent == null 
-                  ? Colors.grey.withOpacity(0.5) 
+              color: _weddingEvent == null
+                  ? Colors.grey.withOpacity(0.5)
                   : null,
             ),
             label: 'Vendors',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.settings), 
+            icon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],
@@ -2159,22 +2160,22 @@ class RSVPChartPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 8;
-    
+
     // Background circle
     final bgPaint = Paint()
       ..color = Colors.white.withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 16;
-    
+
     canvas.drawCircle(center, radius, bgPaint);
-    
+
     // Draw segments
     double startAngle = -90 * (3.14159 / 180); // Start from top
-    
+
     final attending = stats['Attending'] ?? 0;
     final pending = stats['Pending'] ?? 0;
     final notAttending = stats['Not Attending'] ?? 0;
-    
+
     // Attending segment (green)
     if (attending > 0) {
       final sweepAngle = (attending / total) * 2 * 3.14159;
@@ -2183,7 +2184,7 @@ class RSVPChartPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
-      
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
@@ -2193,7 +2194,7 @@ class RSVPChartPainter extends CustomPainter {
       );
       startAngle += sweepAngle;
     }
-    
+
     // Pending segment (orange)
     if (pending > 0) {
       final sweepAngle = (pending / total) * 2 * 3.14159;
@@ -2202,7 +2203,7 @@ class RSVPChartPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
-      
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
@@ -2212,7 +2213,7 @@ class RSVPChartPainter extends CustomPainter {
       );
       startAngle += sweepAngle;
     }
-    
+
     // Not Attending segment (red)
     if (notAttending > 0) {
       final sweepAngle = (notAttending / total) * 2 * 3.14159;
@@ -2221,7 +2222,7 @@ class RSVPChartPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
-      
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
@@ -2248,24 +2249,29 @@ class BudgetChartPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 8;
-    
+
     // Background circle
     final bgPaint = Paint()
       ..color = Colors.white.withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 16;
-    
+
     canvas.drawCircle(center, radius, bgPaint);
-    
+
     // Spent amount segment
     if (spentAmount > 0) {
-      final sweepAngle = (spentAmount / totalAmount * 2 * 3.14159).clamp(0.0, 2 * 3.14159);
+      final sweepAngle = (spentAmount / totalAmount * 2 * 3.14159).clamp(
+        0.0,
+        2 * 3.14159,
+      );
       final paint = Paint()
-        ..color = spentAmount > totalAmount ? Colors.redAccent : Colors.orangeAccent
+        ..color = spentAmount > totalAmount
+            ? Colors.redAccent
+            : Colors.orangeAccent
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
-      
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         -90 * (3.14159 / 180), // Start from top

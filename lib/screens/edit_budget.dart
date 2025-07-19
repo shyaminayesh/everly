@@ -285,8 +285,8 @@ class _EditBudgetScreenState extends State<EditBudgetScreen> {
                 style: const TextStyle(color: Colors.white),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                  LengthLimitingTextInputFormatter(15), // Limit total length to prevent overflow
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
+                  LengthLimitingTextInputFormatter(7), // 4 digits + decimal + 2 decimals = 7 max
                 ],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -296,8 +296,8 @@ class _EditBudgetScreenState extends State<EditBudgetScreen> {
                   if (amount == null || amount <= 0) {
                     return 'Please enter a valid amount';
                   }
-                  if (amount > 999999999) {
-                    return 'Amount too large (max 999,999,999)';
+                  if (amount > 9999.99) {
+                    return 'Amount too large (max 9,999.99)';
                   }
                   return null;
                 },
@@ -331,8 +331,8 @@ class _EditBudgetScreenState extends State<EditBudgetScreen> {
                 style: const TextStyle(color: Colors.white),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                  LengthLimitingTextInputFormatter(15), // Limit total length to prevent overflow
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d{0,4}(\.\d{0,2})?$')),
+                  LengthLimitingTextInputFormatter(7), // 4 digits + decimal + 2 decimals = 7 max
                 ],
                 validator: (value) {
                   if (value != null && value.trim().isNotEmpty) {
