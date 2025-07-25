@@ -7,11 +7,11 @@ import 'package:everly/models/budget.dart';
 /// Basic unit tests that focus on core functionality without complex validation
 void main() {
   group('Basic Widget Tests', () {
-    testWidgets('HomeScreen renders without crashing', (WidgetTester tester) async {
+    testWidgets('HomeScreen renders without crashing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: HomeScreen(title: 'Test'),
-        ),
+        const MaterialApp(home: HomeScreen(title: 'Test')),
       );
       await tester.pumpAndSettle();
 
@@ -20,12 +20,10 @@ void main() {
       expect(find.byType(BottomNavigationBar), findsOneWidget);
     });
 
-    testWidgets('AddBudgetScreen renders without crashing', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AddBudgetScreen(),
-        ),
-      );
+    testWidgets('AddBudgetScreen renders without crashing', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: AddBudgetScreen()));
       await tester.pumpAndSettle();
 
       // Verify basic structure
@@ -34,11 +32,11 @@ void main() {
       expect(find.text('Add Budget Entry'), findsWidgets);
     });
 
-    testWidgets('Bottom navigation has correct items', (WidgetTester tester) async {
+    testWidgets('Bottom navigation has correct items', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: HomeScreen(title: 'Test'),
-        ),
+        const MaterialApp(home: HomeScreen(title: 'Test')),
       );
       await tester.pumpAndSettle();
 
@@ -50,11 +48,7 @@ void main() {
     });
 
     testWidgets('AddBudgetScreen has form fields', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AddBudgetScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: AddBudgetScreen()));
       await tester.pumpAndSettle();
 
       // Check form elements exist
@@ -64,11 +58,7 @@ void main() {
     });
 
     testWidgets('Budget categories are available', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: AddBudgetScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: AddBudgetScreen()));
       await tester.pumpAndSettle();
 
       // Tap dropdown to see categories
@@ -148,9 +138,18 @@ void main() {
   group('BudgetCategory Tests', () {
     test('All categories are defined', () {
       expect(BudgetCategory.allCategories.length, greaterThan(10));
-      expect(BudgetCategory.allCategories.contains(BudgetCategory.venue), isTrue);
-      expect(BudgetCategory.allCategories.contains(BudgetCategory.catering), isTrue);
-      expect(BudgetCategory.allCategories.contains(BudgetCategory.photography), isTrue);
+      expect(
+        BudgetCategory.allCategories.contains(BudgetCategory.venue),
+        isTrue,
+      );
+      expect(
+        BudgetCategory.allCategories.contains(BudgetCategory.catering),
+        isTrue,
+      );
+      expect(
+        BudgetCategory.allCategories.contains(BudgetCategory.photography),
+        isTrue,
+      );
     });
 
     test('Categories have proper values', () {
